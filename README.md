@@ -9,9 +9,9 @@ Currently, popular GitHub projects like Tencent's `AppAgent` or Alibaba's `Mobil
 This is **slow**, **expensive**, and **error-prone**.
 
 **A³ CLI** solves this by providing a deterministic CLI toolkit that handles the heavy lifting of physical Android interactions locally:
-- 物理级的精准触控与滑动 (Physical Tap/Swipe)
-- 智能防抖长图无缝拼接 (Smart Auto-Scrolling & Image Stitching)
-- 零延迟的 UI XML 树结构提取 (Instant UI DOM Extraction)
+- Physical Tap/Swipe (Native Input Events)
+- Smart Auto-Scrolling & Image Stitching
+- Instant UI XML DOM Extraction
 
 Your LLM only needs to issue high-level commands (`python cli.py maps scrape-details`), and this framework will autonomously scroll, stitch, and return the final aggregated data back to the LLM. 
 
