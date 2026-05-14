@@ -12,7 +12,7 @@ class ScreenRecorder:
         self.output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
         self.local_filepath = os.path.join(self.output_dir, filename)
-        self.device_filepath = f"/sdcard/{filename}"
+        self.device_filepath = f"/data/local/tmp/{filename}"
         self.process = None
 
     def start(self):
@@ -30,10 +30,18 @@ class ScreenRecorder:
         """Stop recording and pull the file."""
         print("Stopping screen recording...")
         if self.process:
-            # Kill the screenrecord process safely
+            # Kill the screenrecord process safely with SIGINT (2)
             adb_core.run_adb("shell pkill -2 screenrecord")
-            self.process.terminate()
-            time.sleep(2) # Give it time to save the MP4 header
+            
+            # Wait for adb to finish gracefully (up to 10s) instead of terminating
+            try:
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                print("Warning: screenrecord did not exit cleanly, forcing terminate.")
+                self.process.terminate()
+            
+            # Give device a tiny bit of time to flush the file to storage
+            time.sleep(2)
             
             print(f"Pulling video to {self.local_filepath}...")
             adb_core.run_adb(f"pull {self.device_filepath} {self.local_filepath}")
@@ -46,6 +54,8 @@ if __name__ == "__main__":
     # Test script
     recorder = ScreenRecorder(filename="test_recording.mp4")
     recorder.start()
-    print("Doing some fake work for 5 seconds...")
-    time.sleep(5)
+    print("Doing some fake work for 10 seconds to ensure a valid video...")
+    for i in range(10):
+        adb_core.run_adb("shell input swipe 540 1800 540 400")
+        time.sleep(1)
     recorder.stop()

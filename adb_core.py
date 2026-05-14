@@ -40,15 +40,21 @@ def parse_bounds(bounds_str):
     return tuple(map(int, bounds_str.split(",")))
 
 def find_text_bounds(xml_path, search_text):
-    """Find the bounding box of a node containing the search_text."""
+    """Find the bounding box of a node containing the search_text (or any text in the list)."""
+    if isinstance(search_text, str):
+        search_texts = [search_text]
+    else:
+        search_texts = search_text
+        
     try:
         tree = ET.parse(xml_path)
         root = tree.getroot()
         for node in root.iter('node'):
             text = node.attrib.get('text', '')
             content_desc = node.attrib.get('content-desc', '')
-            if search_text.lower() in text.lower() or search_text.lower() in content_desc.lower():
-                return parse_bounds(node.attrib.get('bounds'))
+            for st in search_texts:
+                if st.lower() in text.lower() or st.lower() in content_desc.lower():
+                    return parse_bounds(node.attrib.get('bounds'))
     except Exception as e:
         print(f"Error parsing XML: {e}")
     return None
@@ -117,4 +123,37 @@ def dismiss_popups():
             time.sleep(1)
             return True
     return False
+
+
+def find_and_tap(text, max_scrolls=10):
+    """Scroll down until text is found, then tap it."""
+    for i in range(max_scrolls):
+        print(f"Looking for '{text}' (Scroll {i})...")
+        dump_ui("temp_find.xml")
+        bounds = find_text_bounds("temp_find.xml", text)
+        if bounds:
+            x = (bounds[0] + bounds[2]) // 2
+            y = (bounds[1] + bounds[3]) // 2
+            print(f"Found '{text}' at {bounds}. Tapping ({x}, {y})")
+            tap(x, y)
+            try: os.remove("temp_find.xml")
+            except: pass
+            return True
+        print("Not found, scrolling down...")
+        swipe(540, 1800, 540, 600, duration=800)
+        time.sleep(2)
+        try: os.remove("temp_find.xml")
+        except: pass
+    
+    print(f"Could not find '{text}' after {max_scrolls} scrolls.")
+    return False
+
+def paste_text(text):
+    print(f"Injecting text safely: {text}")
+    for char in text:
+        if char == ' ':
+            run_adb("shell input keyevent 62") # Space
+        else:
+            run_adb(f"shell input text '{char}'")
+        time.sleep(0.05)
 

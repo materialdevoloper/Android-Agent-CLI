@@ -22,7 +22,7 @@ def scan_menu(scrolls=2, auto=False):
     # Usually merchant pages have 'Menu', 'Delivery', or a cart icon
     print("Waiting for menu to load...")
     # Give it up to 15 seconds to load the page
-    if not adb_core.wait_for_text(["Menu", "Delivery", "Basket"], timeout_sec=15):
+    if not adb_core.wait_for_text(["Menu", "Delivery", "Basket", "Sort", "Chinese"], timeout=15):
         print("Warning: Menu indicators not found. Page might still be loading or we are on the wrong page.")
         print("Proceeding anyway, but screenshots might be blank.")
     else:
