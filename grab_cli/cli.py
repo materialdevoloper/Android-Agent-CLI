@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import time
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import adb_core
@@ -9,6 +10,9 @@ import menu_scanner
 def main():
     parser = argparse.ArgumentParser(description="Grab-CLI Phone Automation Framework")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # launch command
+    launch_parser = subparsers.add_parser("launch", help="Launch the Grab app natively")
 
     # scan-menu command
     scan_parser = subparsers.add_parser("scan-menu", help="Scroll through the menu and stitch screenshots")
@@ -27,7 +31,13 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "scan-menu":
+    if args.command == "launch":
+        print("Launching Grab app...")
+        adb_core.run_adb("shell monkey -p com.grabtaxi.passenger -c android.intent.category.LAUNCHER 1")
+        time.sleep(3)
+        print("Grab app launched.")
+
+    elif args.command == "scan-menu":
         menu_scanner.scan_menu(scrolls=args.scrolls, auto=args.auto)
     
     elif args.command == "tap":
